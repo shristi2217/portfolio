@@ -25,10 +25,8 @@ const redBullTriggered = useRef(false);
 
 const textures = [
   "/can.png",
-  "/can2.png",
-  "/can3.png",
-  "/can4.png",
-  "/can5.png",
+  
+  
 ];
 
 const [adsEnabled, setAdsEnabled] = useState(false);
@@ -113,6 +111,7 @@ const container =
       
     },
   });
+  console.log("Render created", render);
 
   renderRef.current = render;
 
@@ -127,12 +126,7 @@ const container =
   );
 
   
-const canCount =
-  window.innerWidth > 1600
-    ? 300
-    : window.innerWidth > 1000
-    ? 220
-    : 150;
+const canCount = 1;
   
 
   
@@ -168,12 +162,14 @@ for (let i = 0; i < canCount; i++) {
 }
 
 Render.run(render);
-
+console.log("Render running");
 const runner = Runner.create();
 Runner.run(runner, engine);
+console.log("Runner running");
 runnerRef.current = runner;
 };
     
+
 
 const adMessages = [
   "Cute ducks near you!!.",
