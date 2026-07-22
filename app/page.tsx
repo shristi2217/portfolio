@@ -27,7 +27,7 @@ const textures = [
   "/can.png",
   "/can2.png",
   "/can3.png",
-  
+
   
   
 ];
@@ -129,37 +129,30 @@ const container =
   );
 
   
-const canCount = 1;
-  
+const canCount = 3;
 
-  
-     Composite.add(engine.world, floor);
+Composite.add(engine.world, floor);
 
 for (let i = 0; i < canCount; i++) {
-  const texture =
-    textures[
-      Math.floor(
-        Math.random() * textures.length
-      )
-    ];
+  const texture = textures[i];
 
-   const can = Bodies.rectangle(
-  Math.random() * width,
-  -Math.random() * 2000,
-  52,
-  64,
-  {
-    restitution: 0.2,
-    friction: 0.8,
-    render: {
-      sprite: {
-        texture,
-        xScale: 0.09,
-yScale: 0.09,
+  const can = Bodies.rectangle(
+    width / 2 + (i - 1) * 80, // left, center, right
+    -150,                     // all start at the same height
+    52,
+    64,
+    {
+      restitution: 0.2,
+      friction: 0.8,
+      render: {
+        sprite: {
+          texture,
+          xScale: 0.09,
+          yScale: 0.09,
+        },
       },
-    },
-  }
-);
+    }
+  );
 
   Composite.add(engine.world, can);
 }
