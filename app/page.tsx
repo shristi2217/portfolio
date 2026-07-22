@@ -25,6 +25,9 @@ const redBullTriggered = useRef(false);
 
 const textures = [
   "/can.png",
+  "/can2.png",
+  "/can3.png",
+  
   
   
 ];
@@ -140,23 +143,23 @@ for (let i = 0; i < canCount; i++) {
       )
     ];
 
-  const can = Bodies.rectangle(
-    Math.random() * width,
-    -Math.random() * 2000,
-    24,
-    70,
-    {
-      restitution: 0.2,
-      friction: 0.8,
-      render: {
-        sprite: {
-          texture,
-          xScale: 0.1,
-          yScale: 0.1,
-        },
+   const can = Bodies.rectangle(
+  Math.random() * width,
+  -Math.random() * 2000,
+  52,
+  64,
+  {
+    restitution: 0.2,
+    friction: 0.8,
+    render: {
+      sprite: {
+        texture,
+        xScale: 0.09,
+yScale: 0.09,
       },
-    }
-  );
+    },
+  }
+);
 
   Composite.add(engine.world, can);
 }
