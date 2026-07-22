@@ -129,16 +129,17 @@ const container =
   );
 
   
-const canCount = 3;
+const canCount = 250; // adjust to taste
 
 Composite.add(engine.world, floor);
 
 for (let i = 0; i < canCount; i++) {
-  const texture = textures[i];
+  const texture =
+    textures[Math.floor(Math.random() * textures.length)];
 
   const can = Bodies.rectangle(
-    width / 2 + (i - 1) * 80, // left, center, right
-    -150,                     // all start at the same height
+    Math.random() * width,
+    -Math.random() * 2000,
     52,
     64,
     {
