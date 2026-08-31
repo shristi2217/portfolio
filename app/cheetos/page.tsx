@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 const cheetoImages = [
   "/cheetos.png",
@@ -20,58 +20,87 @@ type Cheeto = {
 export default function CheetosPage() {
   const [bagX, setBagX] = useState(0);
   const [score, setScore] = useState(0);
-  const [cheetos, setCheetos] =
-    useState<Cheeto[]>([]);
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [gameOver, setGameOver] = useState(false);
+  const [cheetos, setCheetos] = useState<Cheeto[]>([]);
 
-  // Center bag on mount
+  const bagXRef = useRef(0);
+
+  // Center bag
   useEffect(() => {
-    setBagX(window.innerWidth / 2);
+    const center = window.innerWidth / 2;
+
+    setBagX(center);
+    bagXRef.current = center;
   }, []);
 
-  // Spawn cheetos
+  // Timer
   useEffect(() => {
+    if (gameOver) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((time) => {
+        if (time <= 1) {
+          setGameOver(true);
+          return 0;
+        }
+
+        return time - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [gameOver]);
+
+  // Spawn ONE cheeto at a time
+  useEffect(() => {
+    if (gameOver) return;
+
     const interval = setInterval(() => {
-      setCheetos((prev) => [
-        ...prev,
-        {
-          id: Date.now() + Math.random(),
-          x: Math.random() * window.innerWidth,
-          y: -100,
-          image:
-            cheetoImages[
-              Math.floor(
-                Math.random() *
-                  cheetoImages.length
-              )
-            ],
-        },
-      ]);
-    }, 350);
+      setCheetos((prev) => {
+        // Prevent too many existing on screen
+        if (prev.length >= 8) return prev;
+
+        return [
+          ...prev,
+          {
+            id: Date.now() + Math.random(),
+            x: Math.random() * (window.innerWidth - 120),
+            y: -150,
+            image:
+              cheetoImages[
+                Math.floor(
+                  Math.random() * cheetoImages.length
+                )
+              ],
+          },
+        ];
+      });
+    }, 900);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [gameOver]);
 
-  // Falling animation + catching
+  // Falling animation
   useEffect(() => {
+    if (gameOver) return;
+
     const interval = setInterval(() => {
       setCheetos((prev) => {
         const remaining: Cheeto[] = [];
+        let caughtCount = 0;
 
         for (const c of prev) {
-          const newY = c.y + 7;
+          const newY = c.y + 5;
 
           const caught =
-            newY >
-              window.innerHeight - 220 &&
-            c.x > bagX - 100 &&
-            c.x < bagX + 100;
+            newY > window.innerHeight - 260 &&
+            c.x > bagXRef.current - 160 &&
+            c.x < bagXRef.current + 160;
 
           if (caught) {
-            setScore((s) => s + 1);
-          } else if (
-            newY <
-            window.innerHeight + 100
-          ) {
+            caughtCount++;
+          } else if (newY < window.innerHeight + 150) {
             remaining.push({
               ...c,
               y: newY,
@@ -79,16 +108,23 @@ export default function CheetosPage() {
           }
         }
 
+        if (caughtCount > 0) {
+          setScore((score) => score + caughtCount);
+        }
+
         return remaining;
       });
-    }, 16);
+    }, 30);
 
     return () => clearInterval(interval);
-  }, [bagX]);
+  }, [gameOver]);
 
   const moveBag = (
-    e: React.MouseEvent<HTMLDivElement>
+    e: React.MouseEvent<HTMLElement>
   ) => {
+    if (gameOver) return;
+
+    bagXRef.current = e.clientX;
     setBagX(e.clientX);
   };
 
@@ -104,19 +140,33 @@ export default function CheetosPage() {
         cursor: "none",
       }}
     >
-      <h1
+      {/* SCORE */}
+      <div
         style={{
           position: "absolute",
-          top: 24,
-          left: 24,
+          top: 25,
+          left: 30,
           zIndex: 100,
           fontSize: "2rem",
-          margin: 0,
         }}
       >
-        Cheetos: {score}
-      </h1>
+        🌽 {score}
+      </div>
 
+      {/* TIMER */}
+      <div
+        style={{
+          position: "absolute",
+          top: 25,
+          right: 30,
+          zIndex: 100,
+          fontSize: "2rem",
+        }}
+      >
+        ⏱ {timeLeft}
+      </div>
+
+      {/* CHEETOS */}
       {cheetos.map((c) => (
         <img
           key={c.id}
@@ -125,7 +175,7 @@ export default function CheetosPage() {
           draggable={false}
           style={{
             position: "absolute",
-            width: 80,
+            width: 250,
             left: c.x,
             top: c.y,
             pointerEvents: "none",
@@ -134,21 +184,55 @@ export default function CheetosPage() {
         />
       ))}
 
+      {/* BAG */}
       <img
-        src="/cheetosbag.png"
-        alt="bag"
-        draggable={false}
-        style={{
-          position: "absolute",
-          width: 250,
-          bottom: 30,
-          left: bagX,
-          transform:
-            "translateX(-50%)",
-          pointerEvents: "none",
-          userSelect: "none",
-        }}
-      />
+  src="/cheetosbag.png"
+  alt="Cheetos bag"
+  draggable={false}
+  style={{
+    position: "absolute",
+    width: 350,
+    height: "auto",
+    bottom: 20,
+    left: bagX,
+    pointerEvents: "none",
+    userSelect: "none",
+    zIndex: 100,
+  }}
+/>
+
+      {/* GAME OVER */}
+      {gameOver && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "rgba(255, 247, 230, 0.92)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 200,
+          }}
+        >
+          <h1
+            style={{
+              fontSize: "3rem",
+              marginBottom: 10,
+            }}
+          >
+            TIME'S UP!
+          </h1>
+
+          <p
+            style={{
+              fontSize: "2rem",
+            }}
+          >
+            You caught {score} Cheetos 🌽
+          </p>
+        </div>
+      )}
     </main>
   );
 }
