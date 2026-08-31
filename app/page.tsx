@@ -469,9 +469,10 @@ const openF1Modal = () => {
   <span className="label">play me</span>
 </div>
 
-      <div className="hitbox chips">
-        
-      </div>
+<div
+  className="hitbox chips"
+  onClick={() => router.push("/cheetos")}
+/>
 
       {/* BOTTOM */}
 
