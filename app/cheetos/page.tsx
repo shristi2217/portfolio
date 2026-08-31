@@ -191,7 +191,7 @@ export default function CheetosPage() {
   draggable={false}
   style={{
     position: "absolute",
-    width: 350,
+    width: 100,
     height: "auto",
     bottom: 20,
     left: bagX,
