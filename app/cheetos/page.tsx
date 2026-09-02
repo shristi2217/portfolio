@@ -23,10 +23,15 @@ export default function CheetosPage() {
   const [timeLeft, setTimeLeft] = useState(60);
   const [gameOver, setGameOver] = useState(false);
   const [cheetos, setCheetos] = useState<Cheeto[]>([]);
+const bagXRef = useRef(0);
+const caughtRef = useRef(false);
+const [gameTime, setGameTime] = useState(60);
+const [gameStarted, setGameStarted] = useState(false);
+ 
 
-  const bagXRef = useRef(0);
-
-  // Center bag
+  // -------------------------
+  // CENTER BAG
+  // -------------------------
   useEffect(() => {
     const center = window.innerWidth / 2;
 
@@ -34,112 +39,201 @@ export default function CheetosPage() {
     bagXRef.current = center;
   }, []);
 
-  // Timer
+  // -------------------------
+  // TIMER
+  // -------------------------
   useEffect(() => {
-    if (gameOver) return;
+  if (gameOver || !gameStarted) return;
 
-    const timer = setInterval(() => {
-      setTimeLeft((time) => {
-        if (time <= 1) {
-          setGameOver(true);
-          return 0;
-        }
+  const timer = setInterval(() => {
+    setTimeLeft((time) => {
+      if (time <= 1) {
+        clearInterval(timer);
+        setGameOver(true);
+        return 0;
+      }
 
-        return time - 1;
-      });
-    }, 1000);
+      return time - 1;
+    });
+  }, 1000);
 
-    return () => clearInterval(timer);
-  }, [gameOver]);
+  return () => clearInterval(timer);
+}, [gameOver, gameStarted]);
+ 
+// SPAWN ONE CHEETO AT A TIME
+// -------------------------
+useEffect(() => {
+  if (gameOver) return;
 
-  // Spawn ONE cheeto at a time
-  useEffect(() => {
-    if (gameOver) return;
+  const interval = setInterval(() => {
+    setCheetos((prev) => {
+      // ONLY ONE CHEETO AT A TIME
+      if (prev.length > 0) {
+  return prev;
+}
+caughtRef.current = false;
 
-    const interval = setInterval(() => {
-      setCheetos((prev) => {
-        // Prevent too many existing on screen
-        if (prev.length >= 8) return prev;
 
-        return [
-          ...prev,
-          {
-            id: Date.now() + Math.random(),
-            x: Math.random() * (window.innerWidth - 120),
-            y: -150,
-            image:
-              cheetoImages[
-                Math.floor(
-                  Math.random() * cheetoImages.length
-                )
-              ],
-          },
-        ];
-      });
-    }, 900);
 
-    return () => clearInterval(interval);
-  }, [gameOver]);
+      return [
+        {
+          
+          id: Date.now() + Math.random(),
+          x: Math.random() * (window.innerWidth - 250),
+          y: -120,
+          image:
+            cheetoImages[
+              Math.floor(
+                Math.random() * cheetoImages.length
+              )
+            ],
+        },
+      ];
+    });
+  }, 1200);
 
-  // Falling animation
-  useEffect(() => {
-    if (gameOver) return;
+  return () => clearInterval(interval);
+}, [gameOver]);
 
-    const interval = setInterval(() => {
-      setCheetos((prev) => {
-        const remaining: Cheeto[] = [];
-        let caughtCount = 0;
+ 
+// FALLING + CATCHING
+// -------------------------
+useEffect(() => {
+  if (gameOver || !gameStarted) return;
 
-        for (const c of prev) {
-          const newY = c.y + 5;
+  const interval = setInterval(() => {
+    setCheetos((prev) => {
+      if (prev.length === 0) {
+        return prev;
+      }
 
-          const caught =
-            newY > window.innerHeight - 260 &&
-            c.x > bagXRef.current - 160 &&
-            c.x < bagXRef.current + 160;
+      const c = prev[0];
+     const newY = c.y + 10;
 
-          if (caught) {
-            caughtCount++;
-          } else if (newY < window.innerHeight + 150) {
-            remaining.push({
-              ...c,
-              y: newY,
-            });
-          }
-        }
+      // BAG SIZE
+      const bagWidth = 160;
+      const bagHeight = 195;
+      const bagBottom = 20;
 
-        if (caughtCount > 0) {
-          setScore((score) => score + caughtCount);
-        }
+      const bagTop = window.innerHeight - 100;
 
-        return remaining;
-      });
-    }, 30);
+      // BAG OPENING
+      const bagLeft =
+        bagXRef.current - bagWidth / 2;
 
-    return () => clearInterval(interval);
-  }, [gameOver]);
+      const bagRight =
+        bagXRef.current + bagWidth / 2;
 
-  const moveBag = (
-    e: React.MouseEvent<HTMLElement>
-  ) => {
-    if (gameOver) return;
+      // CHEETO SIZE
+      const cheetoWidth = 250;
+      const cheetoHeight = 250;
 
-    bagXRef.current = e.clientX;
-    setBagX(e.clientX);
+      const cheetoCenterX =
+        c.x + cheetoWidth / 2;
+
+     const cheetoBottom =
+  newY + cheetoHeight;
+
+      // Is Cheeto above the opening?
+      const insideBagX =
+  cheetoCenterX > bagLeft - 10 &&
+  cheetoCenterX < bagRight + 10;
+
+     const insideBagY =
+  newY + cheetoHeight >= bagTop + 30 &&
+  newY <= bagTop + 180;
+      // -------------------------
+      // CAUGHT!
+      // -------------------------
+    if (insideBagX && insideBagY) {
+  if (caughtRef.current) {
+    return [];
+  }
+
+  caughtRef.current = true;
+  setScore((score) => score + 1);
+  return [];
+}
+
+      // -------------------------
+      // MISSED
+      // -------------------------
+      if (newY > window.innerHeight + 100) {
+        // Remove it, but DON'T increase score
+        return [];
+      }
+
+      // -------------------------
+      // KEEP FALLING
+      // -------------------------
+      return [{ ...c, y: newY }];
+    });
+  }, 50);
+
+  return () => clearInterval(interval);
+}, [gameOver, gameStarted]);
+
+  // -------------------------
+  // MOVE BAG
+  // -------------------------
+  const moveBag = (e: React.MouseEvent) => {
+    const newX = e.clientX;
+    setBagX(newX);
+    bagXRef.current = newX;
   };
 
   return (
-    <main
-      onMouseMove={moveBag}
-      style={{
-        position: "relative",
-        width: "100vw",
-        height: "100vh",
-        overflow: "hidden",
-        background: "#fff7e6",
-        cursor: "none",
-      }}
-    >
+  <main
+    onMouseMove={moveBag}
+    style={{
+      position: "relative",
+      width: "100vw",
+      height: "100vh",
+      overflow: "hidden",
+      background: "#fff7e6",
+      cursor: "none",
+    }}
+  >
+{!gameStarted && (
+  <div
+    style={{
+      position: "absolute",
+      inset: 0,
+      background: "#fff7e6",
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 300,
+    }}
+  >
+    <h1 style={{ fontSize: "3rem" }}>
+      How long do you want to play?
+    </h1>
+
+    <div style={{ display: "flex", gap: 20 }}>
+      {[15,30].map((seconds) => (
+        <button
+          key={seconds}
+          onClick={() => {
+  setGameTime(seconds);
+  setTimeLeft(seconds);
+  setGameStarted(true);
+}}
+          style={{
+            padding: "15px 25px",
+            fontSize: "1.5rem",
+            cursor: "pointer",
+          }}
+        >
+          {seconds < 60
+            ? `${seconds} sec`
+            : `${seconds / 60} min`}
+        </button>
+      ))}
+    </div>
+  </div>
+)}
       {/* SCORE */}
       <div
         style={{
@@ -150,7 +244,7 @@ export default function CheetosPage() {
           fontSize: "2rem",
         }}
       >
-        🌽 {score}
+        Cheetos Caught: {score}
       </div>
 
       {/* TIMER */}
@@ -166,7 +260,7 @@ export default function CheetosPage() {
         ⏱ {timeLeft}
       </div>
 
-      {/* CHEETOS */}
+      
       {cheetos.map((c) => (
         <img
           key={c.id}
@@ -191,10 +285,11 @@ export default function CheetosPage() {
   draggable={false}
   style={{
     position: "absolute",
-    width: 100,
+    width: 180,
     height: "auto",
     bottom: 20,
     left: bagX,
+    transform: "translateX(-50%)",
     pointerEvents: "none",
     userSelect: "none",
     zIndex: 100,
@@ -207,7 +302,8 @@ export default function CheetosPage() {
           style={{
             position: "absolute",
             inset: 0,
-            background: "rgba(255, 247, 230, 0.92)",
+            background:
+              "rgba(255, 247, 230, 0.92)",
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
