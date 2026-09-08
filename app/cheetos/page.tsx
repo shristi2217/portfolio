@@ -207,31 +207,72 @@ useEffect(() => {
       zIndex: 300,
     }}
   >
-    <h1 style={{ fontSize: "3rem" }}>
+    <h1
+      style={{
+        fontSize: "3rem",
+        marginBottom: 10,
+      }}
+    >
       How long do you want to play?
     </h1>
 
-    <div style={{ display: "flex", gap: 20 }}>
-      {[15,30].map((seconds) => (
+    <div
+      style={{
+        display: "flex",
+        gap: 20,
+        marginTop: 20,
+      }}
+    >
+      {[30, 60].map((seconds) => (
         <button
           key={seconds}
           onClick={() => {
-  setGameTime(seconds);
-  setTimeLeft(seconds);
-  setGameStarted(true);
-}}
+            setGameTime(seconds);
+            setTimeLeft(seconds);
+          }}
           style={{
-            padding: "15px 25px",
-            fontSize: "1.5rem",
+            padding: "14px 30px",
+            minWidth: 120,
+            fontSize: "1.3rem",
+            fontFamily: "inherit",
+            fontWeight: "bold",
+            background: "#fff",
+            color: "#111",
+            border: "3px solid #111",
+            borderRadius: "14px",
             cursor: "pointer",
+            boxShadow: "4px 4px 0 #111",
           }}
         >
-          {seconds < 60
-            ? `${seconds} sec`
-            : `${seconds / 60} min`}
+          {seconds === 30 ? "30 sec" : "1 min"}
         </button>
       ))}
     </div>
+
+    <button
+      onClick={() => {
+        setScore(0);
+        setCheetos([]);
+        setTimeLeft(gameTime);
+        setGameOver(false);
+        setGameStarted(true);
+      }}
+      style={{
+        marginTop: 30,
+        padding: "15px 55px",
+        fontSize: "1.5rem",
+        fontFamily: "inherit",
+        fontWeight: "bold",
+        background: "#f28c28",
+        color: "#fff",
+        border: "3px solid #111",
+        borderRadius: "14px",
+        cursor: "pointer",
+        boxShadow: "5px 5px 0 #111",
+      }}
+    >
+      PLAY
+    </button>
   </div>
 )}
       {/* SCORE */}
@@ -249,16 +290,16 @@ useEffect(() => {
 
       {/* TIMER */}
       <div
-        style={{
-          position: "absolute",
-          top: 25,
-          right: 30,
-          zIndex: 100,
-          fontSize: "2rem",
-        }}
-      >
-        ⏱ {timeLeft}
-      </div>
+  style={{
+    position: "absolute",
+    top: 25,
+    right: 30,
+    zIndex: 100,
+    fontSize: "2rem",
+  }}
+>
+  ⏱ {timeLeft}
+</div>
 
       
       {cheetos.map((c) => (
@@ -299,36 +340,80 @@ useEffect(() => {
       {/* GAME OVER */}
       {gameOver && (
         <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "rgba(255, 247, 230, 0.92)",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 200,
-          }}
-        >
-          <h1
-            style={{
-              fontSize: "3rem",
-              marginBottom: 10,
-            }}
-          >
-            TIME'S UP!
-          </h1>
+  style={{
+    display: "flex",
+    gap: 20,
+    marginTop: 20,
+  }}
+>
+  <button
+    onClick={() => {
+      setScore(0);
+      setTimeLeft(gameTime);
+      setCheetos([]);
+      setGameOver(false);
+      setGameStarted(false);
+    }}
+    style={{
+      padding: "14px 28px",
+      fontSize: "1.3rem",
+      fontFamily: "inherit",
+      background: "#f28c28",
+      color: "#fff",
+      border: "3px solid #111",
+      borderRadius: "12px",
+      cursor: "pointer",
+      boxShadow: "4px 4px 0 #111",
+    }}
+  >
+    PLAY AGAIN
+  </button>
 
-          <p
-            style={{
-              fontSize: "2rem",
-            }}
-          >
-            You caught {score} Cheetos 🌽
-          </p>
-        </div>
+  <button
+    onClick={() => {
+      window.location.href = "/";
+    }}
+    style={{
+      padding: "14px 28px",
+      fontSize: "1.3rem",
+      fontFamily: "inherit",
+      background: "#fff7e6",
+      color: "#111",
+      border: "3px solid #111",
+      borderRadius: "12px",
+      cursor: "pointer",
+      boxShadow: "4px 4px 0 #111",
+    }}
+  >
+    RETURN TO DESK
+  </button>
+</div>
+        
       )}
+      <button
+  onClick={() => {
+    setTimeLeft(gameTime);
+    setScore(0);
+    setCheetos([]);
+    setGameOver(false);
+    setGameStarted(true);
+  }}
+  style={{
+    marginTop: 30,
+    padding: "16px 50px",
+    fontSize: "1.6rem",
+    fontFamily: "inherit",
+    fontWeight: "bold",
+    background: "#111",
+    color: "#fff",
+    border: "3px solid #111",
+    borderRadius: "12px",
+    cursor: "pointer",
+    boxShadow: "5px 5px 0 #f28c28",
+  }}
+>
+  PLAY
+</button>
     </main>
   );
 }
